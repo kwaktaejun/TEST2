@@ -77,6 +77,9 @@ def index():
 
     return render_template('index.html')
 
+
+# --- Notion 자동 업로드 기능 시작 ---
+
 from notion_client import Client
 import pandas as pd
 from flask import jsonify
@@ -92,8 +95,8 @@ def upload_to_notion(row_data):
                 "품명": {"rich_text": [{"text": {"content": str(row_data.get('품명', ''))}}]},
                 "모델명": {"rich_text": [{"text": {"content": str(row_data.get('모델명', ''))}}]},
                 "규격": {"rich_text": [{"text": {"content": str(row_data.get('규격', ''))}}]},
-                "수량": {"number": int(row_data.get('수량', 0)) if str(row_data.get('수량', '')).isdigit() else 0},
-                "원산지": {"rich_text": [{"text": {"content": str(row_data.get('원산지', ''))}}]},
+                "수량": {"number": int(row_data.get('수량', 0)) if str(row_data.get('수량', '')).replace('.0', '').isdigit() else 0},
+                "원산지 / 제조사": {"rich_text": [{"text": {"content": str(row_data.get('원산지 / 제조사', ''))}}]},
                 "비고": {"rich_text": [{"text": {"content": str(row_data.get('비고', ''))}}]}
             }
         )
