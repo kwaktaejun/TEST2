@@ -76,3 +76,36 @@ def index():
         return send_file(file_stream, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
     return render_template('index.html')
+
+from notion_client import Client
+import pandas as pd
+from flask import jsonify
+
+notion = Client(auth="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")
+
+def upload_to_notion(row_data):
+    try:
+        notion.pages.create(
+            parent={"database_id": "1d555b3f92ba8104a80eda4755e07e54"},
+            properties={
+                "제품모델명": {"title": [{"text": {"content": str(row_data.get('제품모델명', ''))}}]},
+                "품명": {"rich_text": [{"text": {"content": str(row_data.get('품명', ''))}}]},
+                "모델명": {"rich_text": [{"text": {"content": str(row_data.get('모델명', ''))}}]},
+                "규격": {"rich_text": [{"text": {"content": str(row_data.get('규격', ''))}}]},
+                "수량": {"number": int(row_data.get('수량', 0)) if str(row_data.get('수량', '')).isdigit() else 0},
+                "원산지": {"rich_text": [{"text": {"content": str(row_data.get('원산지', ''))}}]},
+                "비고": {"rich_text": [{"text": {"content": str(row_data.get('비고', ''))}}]}
+            }
+        )
+    except Exception as e:
+        print(f"[Notion 업로드 실패] {e}")
+
+@app.route('/upload_excel_notion', methods=['POST'])
+def upload_excel_to_notion():
+    file = request.files['file']
+    df = pd.read_excel(file, sheet_name='영상감시시스템')
+
+    for _, row in df.iterrows():
+        upload_to_notion(row.to_dict())
+
+    return jsonify({'message': 'Notion 업로드 완료'})
